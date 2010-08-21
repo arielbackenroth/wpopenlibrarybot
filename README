@@ -1,0 +1,7 @@
+This module contains a script which implements the OpenlibraryBot described here:
+
+http://en.wikipedia.org/wiki/Wikipedia:Bots/Requests_for_approval/OpenlibraryBot
+
+the script is scripts/openlibrarybot.py
+
+the first set of test data loaded into wikipedia is data/test.tsv.  

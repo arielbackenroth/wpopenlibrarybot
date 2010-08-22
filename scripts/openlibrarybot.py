@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import csv, re
 from wikitools import wiki, page, api
 from optparse import OptionParser
@@ -15,16 +17,22 @@ def insert_link_into_wikitext(link, wikitext):
 
         for line in lines[1:]:
             if inserted:
+                # the link has been inserted - just flush remaining lines
                 yield line
             elif line.strip().startswith("*"):
+                # we're in something that looks like a list - we can insert the link
+                # at the end
                 insertable = True
                 for el in emptylines:
                     yield el
                 emptylines = []
                 yield line
             elif not line.strip():
+                # preserve whitespace
                 emptylines.append(line)
             elif insertable:
+                # it's not whitespace or a link - it's something else.  let's insert here
+                # and then push back any whitespace
                 yield "* %s" % link
                 for el in emptylines:
                     yield el
@@ -32,11 +40,14 @@ def insert_link_into_wikitext(link, wikitext):
                 yield line
                 inserted = True
             else:
+                # this might be another macro like {{Wikiquotes}} - just ignore
                 for el in emptylines:
                     yield el
                 emptylines = []
                 yield line
+        
         if not inserted and insertable:
+            # the list just ended without a newline - yield the link
             yield "* %s" % link
                 
     return '\n'.join(list(generate_wikitext(wikitext.split('\n'))))
@@ -78,11 +89,11 @@ if __name__ == "__main__":
 
         new_wt = insert_link_into_wikitext("{{%s|id=%s}}" % (link_template, olid), old_wt)
         if old_wt != new_wt:
-            import ipdb; ipdb.set_trace();
             result = p.edit(bot=True, summary=EDIT_COMMENT, text=new_wt)
             assert result['edit']['result'].lower() == 'success'
             print "added %s(%s) to %s (%s)" % (link_template, olid, p.title, wpid)
 
+    # args[0] is a tsv of [wikipediaid|openlibraryid|openlibrary_type|name (for debugging)]
     f = open(args[0])
     with f:
         data = csv.reader(f, delimiter='\t')

@@ -16,9 +16,6 @@ class Logger:
     def skip(self, s):
         print colored("SKIPPING: %s" % s, 'yellow')
 
-    def added(self, s):
-        print colored("ADDED: %s" % s, 'green')
-
 LOG = Logger()
 
 def has_readable_editions(type, olid):
@@ -191,21 +188,21 @@ if __name__ == "__main__":
         # if there are no external links on the page, let's not bother, we don't
         # want to add a new section to the page
         if not p.setSection(section="External links"):
-            LOG.skip("%s (%s) has no external links" % (p.title, wpid))
+            print colored("%s (%s) has no external links" % (p.title, wpid), "blue")
             return
 
         # check if the template is used
         templates = p.getTemplates()
         if ("Template:%s" % link_template in templates or
             "Template:%s" % link_template.replace('_', ' ') in templates):
-            LOG.skip("%s already in %s (%s)" % (link_template, p.title, wpid))
+            print colored("NOOP: %s already in %s (%s)" % (link_template, p.title, wpid), "cyan")
             return
 
         # check if there's any existing link to open library
         extlinks = p.getExternalLinks()
         extdomains = [urlparse.urlsplit(el).netloc for el in extlinks]
         if "openlibrary.org" in extdomains or "www.openlibrary.org" in extdomains:
-            LOG.skip("%s (%s) already links to open library" % (p.title, wpid))
+            print colored("NOOP: %s (%s) already links to open library" % (p.title, wpid), "cyan")
             return
 
         old_wt = p.getWikiText()
@@ -232,7 +229,7 @@ if __name__ == "__main__":
             if not dry_run:
                 result = p.edit(bot=True, summary=EDIT_COMMENT, text=new_wt)
                 assert result['edit']['result'].lower() == 'success'
-            LOG.added("added %s(%s) to %s (%s)" % (link_template, olid, p.title, wpid))
+            print colored("added %s(%s) to %s (%s)" % (link_template, olid, p.title, wpid), "green")
             return True
 
     # args[0] is a tsv of [wikipediaid|openlibraryid|openlibrary_type|name (for debugging)]

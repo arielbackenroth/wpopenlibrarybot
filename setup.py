@@ -11,4 +11,4 @@ setup(name='wpopenlibarywp',
       description='OpenlibraryBot',
       packages=find_packages(exclude=["ez_setup"]),
       scripts=filter(executable, glob.glob('scripts/*')),
-      install_requires=('simplejson', 'wikitools'))
+      install_requires=('simplejson', 'termcolor', 'wikitools'))

@@ -30,7 +30,7 @@ def has_readable_editions(type, olid):
         LOG.warn("incorrect type for %s (%s)" % (olid, type))
         return
 
-    try: 
+    try:
         if type == "/type/author":
             url = "/query.json?%s" % urllib.urlencode({
                     "type": "/type/edition",
@@ -38,7 +38,7 @@ def has_readable_editions(type, olid):
                     "ocaid": ""
             })
 
-        elif type == "/type/work":                    
+        elif type == "/type/work":
             url = "/query.json?%s" % urllib.urlencode({
                     "type": "/type/edition",
                     "works": "/works/%s" % olid,
@@ -55,41 +55,41 @@ def has_readable_editions(type, olid):
         for edition in editions:
             if edition['ocaid']:
                 return True
-    finally: 
+    finally:
         conn.close()
 
 
-EDIT_COMMENT = "[[Wikipedia:Bots/Requests for approval/OpenlibraryBot|discuss this trial]]"
-
+#EDIT_COMMENT = "[[Wikipedia:Bots/Requests for approval/OpenlibraryBot|discuss this trial]]"
+EDIT_COMMENT = "/*External links*/ links to [[Open Library]]"
 
 class Page(page.Page):
-    
+
     # will get added to wikitools.page.Page...
     def getExternalLinks(self, force=False):
-    	"""Gets a list of all the external links the page
-    	
-    	force - load the list even if we already loaded it before
-    	
-    	"""
-    	if hasattr(self, "extlinks") and not force:
+        """Gets a list of all the external links the page
+
+        force - load the list even if we already loaded it before
+
+        """
+        if hasattr(self, "extlinks") and not force:
             return self.extlinks
-    	if self.pageid == 0 and not self.title:
+        if self.pageid == 0 and not self.title:
             self.setPageInfo()
         if not self.exists:
             raise page.NoPage
-    	params = {
-    		'action': 'query',
-    		'prop': 'extlinks',
-    		'ellimit': self.site.limit,
-    	}
-    	if self.pageid > 0:
-    		params['pageids'] = self.pageid
-    	else:
-    		params['titles'] = self.title	
-    	req = api.APIRequest(self.site, params)
-    	response = req.query()
-    	self.extlinks = []
-        
+        params = {
+            'action': 'query',
+            'prop': 'extlinks',
+            'ellimit': self.site.limit,
+        }
+        if self.pageid > 0:
+            params['pageids'] = self.pageid
+        else:
+            params['titles'] = self.title
+        req = api.APIRequest(self.site, params)
+        response = req.query()
+        self.extlinks = []
+
         def _extractToList(json, stuff):
             list = []
             if self.pageid == 0:
@@ -99,13 +99,13 @@ class Page(page.Page):
                 for item in json['query']['pages'][str(self.pageid)][stuff]:
                     list.extend(item.values())
             return list
-    
-    	if isinstance(response, list): #There shouldn't be more than 5000 links on a page...
+
+        if isinstance(response, list): #There shouldn't be more than 5000 links on a page...
             for part in response:
                 self.extlinks.extend(_extractToList(self, 'extlinks'))
-    	else:
+        else:
             self.extlinks = _extractToList(response, 'extlinks')
-    	return self.extlinks
+        return self.extlinks
 
 def insert_link_into_wikitext(link, wikitext):
     def generate_wikitext(lines):
@@ -146,19 +146,19 @@ def insert_link_into_wikitext(link, wikitext):
                     yield el
                 emptylines = []
                 yield line
-        
+
         if not inserted and insertable:
             # the list just ended without a newline - yield the link
             yield "* %s" % link
-                
+
     return '\n'.join(list(generate_wikitext(wikitext.split('\n'))))
 
 if __name__ == "__main__":
     parser = OptionParser(usage="%prog [-u bot_username] [-p bot_password] [-l limit] [-d --dry-run] file")
-    parser.add_option("-u", "--bot-username", dest="bot_username", 
+    parser.add_option("-u", "--bot-username", dest="bot_username",
                       default="OpenlibraryBot",
                       help="The bot username for writing to wikipedia")
-    parser.add_option("-p", "--bot-password", dest="bot_password", 
+    parser.add_option("-p", "--bot-password", dest="bot_password",
                       help="The bot password for writing to wikipedia")
     parser.add_option("-l", "--limit", dest="limit", type="int",
                       default=None,
@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
     if not options.bot_password:
         options.bot_password = getpass.getpass("Please enter the password for %s: " % options.bot_username)
-        
+
     site = wiki.Wiki("http://en.wikipedia.org/w/api.php")
     site.login(options.bot_username, options.bot_password)
 
@@ -216,7 +216,7 @@ if __name__ == "__main__":
                     olid
                 )
             )
-            
+
             while True:
                 answer = sys.stdin.readline().strip()
                 if answer not in ('y', 'n'):
@@ -234,10 +234,10 @@ if __name__ == "__main__":
 
     # args[0] is a tsv of [wikipediaid|openlibraryid|openlibrary_type|name (for debugging)]
     f = open(args[0])
-    num_added = 0 
+    num_added = 0
     with f:
         data = csv.reader(f, delimiter='\t')
-    
+
         for wpid, olid, type, name in data:
             if options.limit is not None and num_added >= options.limit:
                 break
